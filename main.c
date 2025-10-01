@@ -133,22 +133,27 @@ void execute_statement(Statement* statement)
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
 
-const int ID_OFFSET = 0;
-const int ID_SIZE = size_of_attribute(Row, id);
-const int USERNAME_SIZE = size_of_attribute(Row, username);
-const int USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-const int EMAIL_SIZE = size_of_attribute(Row, email);
-const int EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
-const int ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+const int ID_OFFSET         = 0;
+const int ID_SIZE           = size_of_attribute(Row, id);
+const int USERNAME_SIZE     = size_of_attribute(Row, username);
+const int USERNAME_OFFSET   = ID_OFFSET + ID_SIZE;
+const int EMAIL_SIZE        = size_of_attribute(Row, email);
+const int EMAIL_OFFSET      = USERNAME_OFFSET + USERNAME_SIZE;
+const int ROW_SIZE          = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 void serialize_row(Row* source, void* destination)
 {
-    memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
-    memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
-    memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+    memcpy(destination + ID_OFFSET,         &(source->id),          ID_SIZE);
+    memcpy(destination + USERNAME_OFFSET,   &(source->username),    USERNAME_SIZE);
+    memcpy(destination + EMAIL_OFFSET,      &(source->email),       EMAIL_SIZE);
 }
 
-void deserialize_row();
+void deserialize_row(void * source, Row * destination)
+{
+    memcpy(&(destination->id),          source + ID_OFFSET,         ID_SIZE);
+    memcpy(&(destination->username),    source + USERNAME_OFFSET,   USERNAME_SIZE);
+    memcpy(&(destination->email),       source + EMAIL_OFFSET,      EMAIL_SIZE);
+}
 
 int main(int argc, char** argv)
 {

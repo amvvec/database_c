@@ -124,19 +124,6 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-void execute_statement(Statement* statement)
-{
-    switch(statement->type)
-    {
-    case(STATEMENT_INSERT):
-        printf("This is where we would do an insert.\n");
-        break;
-    case(STATEMENT_SELECT):
-        printf("This is where we would do a select.\n");
-        break;
-    }
-}
-
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
 
 const int ID_OFFSET = 0;
@@ -186,6 +173,11 @@ void* row_slot(Table* table, int row_num)
     return page + byte_offset;
 }
 
+void print_row(Row * row)
+{
+    printf("(%d, %s, %s)\n", row->id, row->username, row->email);
+}
+
 ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     if(table->num_rows >= TABLE_MAX_ROWS)
@@ -195,6 +187,17 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
     Row* row_to_insert = &(statement->row_to_insert);
     serialize_row(row_to_insert, row_slot(table, table->num_rows));
     table->num_rows += 1;
+    return EXECUTE_SUCCESS;
+}
+
+ExecuteResult execute_select(Statement * statement, Table * table)
+{
+    Row row;
+    for(int i = 0; i < table->num_rows; i++)
+    {
+        deserialize_row(row_slot(table, i), &row);
+        print_row(&row);
+    }
     return EXECUTE_SUCCESS;
 }
 

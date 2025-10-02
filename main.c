@@ -57,6 +57,18 @@ typedef enum
     PREPARE_UNRECOGNIZED_STATEMENT
 } PrepareResult;
 
+typedef enum
+{
+    STATEMENT_INSERT,
+    STATEMENT_SELECT
+} StatementType;
+
+typedef enum
+{
+    EXECUTE_SUCCESS,
+    EXECUTE_TABLE_FULL
+} ExecuteResult;
+
 MetaCommandResult do_meta_command(InputBuffer* input_buffer)
 {
     if(strcmp(input_buffer->buffer, ".exit") == 0)
@@ -69,12 +81,6 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer)
         return META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 }
-
-typedef enum
-{
-    STATEMENT_INSERT,
-    STATEMENT_SELECT
-} StatementType;
 
 #define COLUMN_USERNAME_SIZE 32
 #define COLUMN_EMAIL_SIZE 255
@@ -133,26 +139,63 @@ void execute_statement(Statement* statement)
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
 
-const int ID_OFFSET         = 0;
-const int ID_SIZE           = size_of_attribute(Row, id);
-const int USERNAME_SIZE     = size_of_attribute(Row, username);
-const int USERNAME_OFFSET   = ID_OFFSET + ID_SIZE;
-const int EMAIL_SIZE        = size_of_attribute(Row, email);
-const int EMAIL_OFFSET      = USERNAME_OFFSET + USERNAME_SIZE;
-const int ROW_SIZE          = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+const int ID_OFFSET = 0;
+const int ID_SIZE = size_of_attribute(Row, id);
+const int USERNAME_SIZE = size_of_attribute(Row, username);
+const int USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const int EMAIL_SIZE = size_of_attribute(Row, email);
+const int EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+const int ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 void serialize_row(Row* source, void* destination)
 {
-    memcpy(destination + ID_OFFSET,         &(source->id),          ID_SIZE);
-    memcpy(destination + USERNAME_OFFSET,   &(source->username),    USERNAME_SIZE);
-    memcpy(destination + EMAIL_OFFSET,      &(source->email),       EMAIL_SIZE);
+    memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
+    memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
+    memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
 }
 
-void deserialize_row(void * source, Row * destination)
+void deserialize_row(void* source, Row* destination)
 {
-    memcpy(&(destination->id),          source + ID_OFFSET,         ID_SIZE);
-    memcpy(&(destination->username),    source + USERNAME_OFFSET,   USERNAME_SIZE);
-    memcpy(&(destination->email),       source + EMAIL_OFFSET,      EMAIL_SIZE);
+    memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
+    memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE);
+    memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+}
+
+#define TABLE_MAX_PAGES 100
+const int PAGE_SIZE = 4096;
+const int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+const int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
+typedef struct
+{
+    int num_rows;
+    void* pages[TABLE_MAX_PAGES];
+} Table;
+
+void* row_slot(Table* table, int row_num)
+{
+    int page_num = row_num / ROWS_PER_PAGE;
+    int* page = table->pages[page_num];
+    if(!page)
+    {
+        // Allocate memory only when we thry to access page
+        page = table->pages[page_num] = malloc(PAGE_SIZE);
+    }
+    int row_offset = row_num % ROWS_PER_PAGE;
+    int byte_offset = row_offset * ROW_SIZE;
+    return page + byte_offset;
+}
+
+ExecuteResult execute_insert(Statement* statement, Table* table)
+{
+    if(table->num_rows >= TABLE_MAX_ROWS)
+    {
+        return EXECUTE_TABLE_FULL;
+    }
+    Row* row_to_insert = &(statement->row_to_insert);
+    serialize_row(row_to_insert, row_slot(table, table->num_rows));
+    table->num_rows += 1;
+    return EXECUTE_SUCCESS;
 }
 
 int main(int argc, char** argv)

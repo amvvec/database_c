@@ -201,6 +201,17 @@ ExecuteResult execute_select(Statement * statement, Table * table)
     return EXECUTE_SUCCESS;
 }
 
+ExecuteResult execute_statement(Statement * statement, Table * table)
+{
+    switch(statement->type)
+    {
+        case(STATEMENT_INSERT):
+            return execute_insert(statement, table);
+        case(STATEMENT_SELECT):
+            return execute_select(statement, table);
+    }
+}
+
 int main(int argc, char** argv)
 {
     InputBuffer* input_buffer = new_input_buffer();

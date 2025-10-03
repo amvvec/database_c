@@ -178,6 +178,17 @@ void print_row(Row * row)
     printf("(%d, %s, %s)\n", row->id, row->username, row->email);
 }
 
+Table * new_table()
+{
+    Table * table = (Table*)malloc(sizeof(Table));
+    table->num_rows = 0;
+    for(int i = 0; i < TABLE_MAX_PAGES; i++)
+    {
+        table->pages[i] = NULL;
+    }
+    return table;
+}
+
 ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     if(table->num_rows >= TABLE_MAX_ROWS)
@@ -214,6 +225,7 @@ ExecuteResult execute_statement(Statement * statement, Table * table)
 
 int main(int argc, char** argv)
 {
+    Table * table = new_table();
     InputBuffer* input_buffer = new_input_buffer();
     while(true)
     {
@@ -240,7 +252,7 @@ int main(int argc, char** argv)
                    input_buffer->buffer);
             continue;
         }
-        execute_statement(&statement);
+        execute_statement(&statement, table);
         printf("Executed\n");
     }
     return 0;

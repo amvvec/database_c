@@ -3,6 +3,76 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
+#define COLUMN_USERNAME_SIZE 32
+#define COLUMN_EMAIL_SIZE 255
+#define TABLE_MAX_PAGES 100
+
+typedef enum
+{
+    META_COMMAND_SUCCESS,
+    META_COMMAND_UNRECOGNIZED_COMMAND
+} MetaCommandResult;
+
+typedef enum
+{
+    PREPARE_SUCCESS,
+    PREPARE_SYNTAX_ERROR,
+    PREPARE_UNRECOGNIZED_STATEMENT
+} PrepareResult;
+
+typedef enum
+{
+    STATEMENT_INSERT,
+    STATEMENT_SELECT
+} StatementType;
+
+typedef enum
+{
+    EXECUTE_SUCCESS,
+    EXECUTE_TABLE_FULL
+} ExecuteResult;
+
+typedef struct
+{
+    ssize_t id;
+    char username[COLUMN_USERNAME_SIZE];
+    char email[COLUMN_EMAIL_SIZE];
+} Row;
+
+typedef struct
+{
+    StatementType type;
+    Row row_to_insert; // Only used by insert statement
+} Statement;
+
+typedef struct
+{
+    int num_rows;
+    void* pages[TABLE_MAX_PAGES];
+} Table;
+
+Table* new_table()
+{
+    Table* table = (Table*)malloc(sizeof(Table));
+    table->num_rows = 0;
+    for(int i = 0; i < TABLE_MAX_PAGES; i++)
+    {
+        table->pages[i] = NULL;
+    }
+    return table;
+}
+
+void free_table(Table* table)
+{
+    for(int i = 0; table->pages[i]; i++)
+    {
+        free(table->pages[i]);
+    }
+
+    free(table);
+}
+
 typedef struct
 {
     char* buffer;
@@ -44,36 +114,12 @@ void close_input_buffer(InputBuffer* input_buffer)
     free(input_buffer);
 }
 
-typedef enum
-{
-    META_COMMAND_SUCCESS,
-    META_COMMAND_UNRECOGNIZED_COMMAND
-} MetaCommandResult;
-
-typedef enum
-{
-    PREPARE_SUCCESS,
-    PREPARE_SYNTAX_ERROR,
-    PREPARE_UNRECOGNIZED_STATEMENT
-} PrepareResult;
-
-typedef enum
-{
-    STATEMENT_INSERT,
-    STATEMENT_SELECT
-} StatementType;
-
-typedef enum
-{
-    EXECUTE_SUCCESS,
-    EXECUTE_TABLE_FULL
-} ExecuteResult;
-
-MetaCommandResult do_meta_command(InputBuffer* input_buffer)
+MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table)
 {
     if(strcmp(input_buffer->buffer, ".exit") == 0)
     {
         close_input_buffer(input_buffer);
+        free_table(table);
         exit(EXIT_SUCCESS);
     }
     else
@@ -81,22 +127,6 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer)
         return META_COMMAND_UNRECOGNIZED_COMMAND;
     }
 }
-
-#define COLUMN_USERNAME_SIZE 32
-#define COLUMN_EMAIL_SIZE 255
-
-typedef struct
-{
-    ssize_t id;
-    char username[COLUMN_USERNAME_SIZE];
-    char email[COLUMN_EMAIL_SIZE];
-} Row;
-
-typedef struct
-{
-    StatementType type;
-    Row row_to_insert; // Only used by insert statement
-} Statement;
 
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
 {
@@ -124,8 +154,6 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
-
 const int ID_OFFSET = 0;
 const int ID_SIZE = size_of_attribute(Row, id);
 const int USERNAME_SIZE = size_of_attribute(Row, username);
@@ -148,16 +176,9 @@ void deserialize_row(void* source, Row* destination)
     memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
 }
 
-#define TABLE_MAX_PAGES 100
 const int PAGE_SIZE = 4096;
 const int ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 const int TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
-
-typedef struct
-{
-    int num_rows;
-    void* pages[TABLE_MAX_PAGES];
-} Table;
 
 void* row_slot(Table* table, int row_num)
 {
@@ -173,20 +194,9 @@ void* row_slot(Table* table, int row_num)
     return page + byte_offset;
 }
 
-void print_row(Row * row)
+void print_row(Row* row)
 {
     printf("(%d, %s, %s)\n", row->id, row->username, row->email);
-}
-
-Table * new_table()
-{
-    Table * table = (Table*)malloc(sizeof(Table));
-    table->num_rows = 0;
-    for(int i = 0; i < TABLE_MAX_PAGES; i++)
-    {
-        table->pages[i] = NULL;
-    }
-    return table;
 }
 
 ExecuteResult execute_insert(Statement* statement, Table* table)
@@ -201,7 +211,7 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
     return EXECUTE_SUCCESS;
 }
 
-ExecuteResult execute_select(Statement * statement, Table * table)
+ExecuteResult execute_select(Statement* statement, Table* table)
 {
     Row row;
     for(int i = 0; i < table->num_rows; i++)
@@ -212,20 +222,20 @@ ExecuteResult execute_select(Statement * statement, Table * table)
     return EXECUTE_SUCCESS;
 }
 
-ExecuteResult execute_statement(Statement * statement, Table * table)
+ExecuteResult execute_statement(Statement* statement, Table* table)
 {
     switch(statement->type)
     {
-        case(STATEMENT_INSERT):
-            return execute_insert(statement, table);
-        case(STATEMENT_SELECT):
-            return execute_select(statement, table);
+    case(STATEMENT_INSERT):
+        return execute_insert(statement, table);
+    case(STATEMENT_SELECT):
+        return execute_select(statement, table);
     }
 }
 
 int main(int argc, char** argv)
 {
-    Table * table = new_table();
+    Table* table = new_table();
     InputBuffer* input_buffer = new_input_buffer();
     while(true)
     {
@@ -233,7 +243,7 @@ int main(int argc, char** argv)
         read_input(input_buffer);
         if(input_buffer->buffer[0] == ".")
         {
-            switch(do_meta_command(input_buffer))
+            switch(do_meta_command(input_buffer, table))
             {
             case(META_COMMAND_SUCCESS):
                 continue;

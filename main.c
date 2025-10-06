@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0))->Attribute
 #define COLUMN_USERNAME_SIZE 32
@@ -50,9 +53,37 @@ typedef struct
 
 typedef struct
 {
+    int file_descriptor;
+    int file_length;
+    void * pages[TABLE_MAX_PAGES];
+} Pager;
+
+Pager * pager_open(const char * filename)
+{
+    int fd = open(filename, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR);
+
+    if(fd == -1)
+    {
+        printf("Unable to open file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    off_t file_length = lseek(fd, 0, SEEK_END);
+
+    Pager * pager = malloc(sizeof(Pager));
+    return pager;
+}
+
+typedef struct
+{
     int num_rows;
-    void* pages[TABLE_MAX_PAGES];
+    Pager* pager;
 } Table;
+
+Table * db_open(const char * filename)
+{
+    Pager * pager = pager_open
+}
 
 Table* new_table()
 {

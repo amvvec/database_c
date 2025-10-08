@@ -218,6 +218,31 @@ void db_close(Table * table)
 
 typedef struct
 {
+    Table * table;
+    int row_num;
+    bool end_of_table;
+} Cursor;
+
+Cursor * table_start(Table * table)
+{
+    Cursor * cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = 0;
+    cursor->end_of_table = (table->num_rows == 0);
+    return cursor;
+}
+
+Cursor * table_end(Table * table)
+{
+    Cursor * cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = table->num_rows;
+    cursor->end_of_table = true;
+    return cursor;
+}
+
+typedef struct
+{
     char* buffer;
     size_t buffer_length;
     ssize_t input_length;

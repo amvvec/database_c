@@ -242,7 +242,7 @@ Cursor* table_end(Table* table)
     return cursor;
 }
 
-void cursor_advance(Cursor * cursor)
+void cursor_advance(Cursor* cursor)
 {
     cursor->row_num += 1;
     if(cursor->row_num >= cursor->table->num_rows)
@@ -404,7 +404,7 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
         return EXECUTE_TABLE_FULL;
     }
     Row* row_to_insert = &(statement->row_to_insert);
-    Cursor * cursor = table_end(table);
+    Cursor* cursor = table_end(table);
     serialize_row(row_to_insert, cursor_value(cursor));
     table->num_rows += 1;
     free(cursor);
@@ -413,12 +413,16 @@ ExecuteResult execute_insert(Statement* statement, Table* table)
 
 ExecuteResult execute_select(Statement* statement, Table* table)
 {
+    Cursor* cursor = table_start(table);
+
     Row row;
-    for(int i = 0; i < table->num_rows; i++)
+    while(!(cursor->end_of_table))
     {
-        deserialize_row(row_slot(table, i), &row);
+        deserialize_row(cursor_value(cursor), &row);
         print_row(&row);
+        cursor_advance;
     }
+    free(cursor);
     return EXECUTE_SUCCESS;
 }
 

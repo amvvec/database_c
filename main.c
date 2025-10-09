@@ -242,6 +242,15 @@ Cursor* table_end(Table* table)
     return cursor;
 }
 
+void cursor_advance(Cursor * cursor)
+{
+    cursor->row_num += 1;
+    if(cursor->row_num >= cursor->table->num_rows)
+    {
+        cursor->end_of_table = true;
+    }
+}
+
 typedef struct
 {
     char* buffer;

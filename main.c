@@ -443,6 +443,18 @@ typedef enum
     NODE_LEAF
 } NodeType;
 
+/**
+ * Common Node Header Layout
+ */
+const int NODE_TYPE_SIZE = sizeof(int);
+const int NODE_TYPE_OFFSET = 0;
+const int IS_ROOT_SIZE = sizeof(int);
+const int IS_ROOT_OFFSET = NODE_TYPE_SIZE;
+const int PARENT_POINTER_SIZE = sizeof(int);
+const int PARENT_POINTER_OFFSET = IS_ROOT_OFFSET + IS_ROOT_SIZE;
+const int COMMON_NODE_HEADER_SIZE =
+    NODE_TYPE_SIZE + IS_ROOT_SIZE + PARENT_POINTER_SIZE;
+
 int main(int argc, char** argv)
 {
     if(argc < 2)

@@ -484,6 +484,11 @@ int* leaf_node_num_cells(void* node)
     return node + LEAF_NODE_NUM_CELLS_OFFSET;
 }
 
+int* leaf_node_key(void* node, int cell_num)
+{
+    return leaf_node_cell(node, cell_num);
+}
+
 int main(int argc, char** argv)
 {
     if(argc < 2)

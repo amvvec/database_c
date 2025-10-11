@@ -444,7 +444,7 @@ typedef enum
 } NodeType;
 
 /**
- * Common Node Header Layout
+ * common node header layout
  */
 const int NODE_TYPE_SIZE = sizeof(int);
 const int NODE_TYPE_OFFSET = 0;
@@ -454,6 +454,14 @@ const int PARENT_POINTER_SIZE = sizeof(int);
 const int PARENT_POINTER_OFFSET = IS_ROOT_OFFSET + IS_ROOT_SIZE;
 const int COMMON_NODE_HEADER_SIZE =
     NODE_TYPE_SIZE + IS_ROOT_SIZE + PARENT_POINTER_SIZE;
+
+/**
+ * leaf node header layout
+ */
+const int LEAF_NODE_NUM_CELLS_SIZE = sizeof(int);
+const int LEAF_NODE_NUM_CELLS_OFFSET = COMMON_NODE_HEADER_SIZE;
+const int LEAF_NODE_HEADER_SIZE =
+    COMMON_NODE_HEADER_SIZE + LEAF_NODE_NUM_CELLS_SIZE;
 
 int main(int argc, char** argv)
 {

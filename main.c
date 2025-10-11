@@ -489,6 +489,11 @@ int* leaf_node_key(void* node, int cell_num)
     return leaf_node_cell(node, cell_num);
 }
 
+void* leaf_node_value(void* node, int cell_num)
+{
+    return leaf_node_cell(node, cell_num) + LEAF_NODE_KEY_SIZE;
+}
+
 int main(int argc, char** argv)
 {
     if(argc < 2)

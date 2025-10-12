@@ -56,6 +56,7 @@ typedef struct
 {
     int file_descriptor;
     int file_length;
+    int num_pages;
     void* pages[TABLE_MAX_PAGES];
 } Pager;
 
@@ -88,6 +89,12 @@ Pager* pager_open(const char* filename)
     Pager* pager = malloc(sizeof(Pager));
     pager->file_descriptor = fd;
     pager->file_length = file_length;
+    pager->num_pages = (file_length / PAGE_SIZE);
+    if(file_length % PAGE_SIZE != 0)
+    {
+        printf("DB file is not a whole number of pages. Corrupt file\n");
+        exit(EXIT_FAILURE);
+    }
     for(int i = 0; i < TABLE_MAX_PAGES; i++)
     {
         pager->pages[i] = NULL;
@@ -124,11 +131,15 @@ void* get_page(Pager* pager, int page_num)
             }
         }
         pager->pages[page_num] = page;
+        if(page_num >= pager->num_pages)
+        {
+            pager->num_pages = page_num + 1;
+        }
     }
     return pager->pages[page_num];
 }
 
-void pager_flush(Pager* pager, int page_num, int size)
+void pager_flush(Pager* pager, int page_num)
 {
     if(pager->pages[page_num] == NULL)
     {
@@ -144,7 +155,7 @@ void pager_flush(Pager* pager, int page_num, int size)
     }
     // TODO:
     ssize_t bytes_written =
-        write(pager->file_descriptor, pager->pages[page_num], size);
+        write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
     if(bytes_written == -1)
     {
         printf("Error writing: %d\n", errno);
@@ -156,6 +167,7 @@ typedef struct
 {
     int num_rows;
     Pager* pager;
+    int root_page_num;
 } Table;
 
 Table* db_open(const char* filename)
@@ -172,31 +184,16 @@ void db_close(Table* table)
 {
     Pager* pager = table->pager;
     int num_full_pages = table->num_rows / ROWS_PER_PAGE;
-    for(int i = 0; i < num_full_pages; i++)
+    for(int i = 0; i < pager->num_pages; i++)
     {
         if(pager->pages[i] == NULL)
         {
             continue;
         }
 
-        pager_flush(pager, i, PAGE_SIZE);
+        pager_flush(pager, i);
         free(pager->pages[i]);
         pager->pages[i] == NULL;
-    }
-    /**
-     * There may be a partial page to write to the end of the file
-     * This should not be needed after we switch to a B-tree
-     */
-    int num_additional_rows = table->num_rows % ROWS_PER_PAGE;
-    if(num_additional_rows > 0)
-    {
-        int page_num = num_full_pages;
-        if(pager->pages[page_num] != NULL)
-        {
-            pager_flush(pager, page_num, num_additional_rows * ROW_SIZE);
-            free(pager->pages[page_num]);
-            pager->pages[page_num] = NULL;
-        }
     }
     int result = close(pager->file_descriptor);
     if(result == -1)

@@ -591,6 +591,18 @@ ExecuteResult execute_statement(Statement* statement, Table* table)
     }
 }
 
+void print_leaf_node(void * node)
+{
+    int num_cells = * leaf_node_num_cells(node);
+    printf("leaf (size %d)\n", num_cells);
+
+    for(int i = 0; i < num_cells; i++)
+    {
+        int key = * leaf_node_key(node, i);
+        printf(" - %d : %d\n", i, key);
+    }
+}
+
 int main(int argc, char** argv)
 {
     if(argc < 2)

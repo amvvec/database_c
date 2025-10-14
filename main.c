@@ -459,12 +459,30 @@ void close_input_buffer(InputBuffer* input_buffer)
     free(input_buffer);
 }
 
+void print_leaf_node(void* node)
+{
+    int num_cells = *leaf_node_num_cells(node);
+    printf("leaf (size %d)\n", num_cells);
+
+    for(int i = 0; i < num_cells; i++)
+    {
+        int key = *leaf_node_key(node, i);
+        printf(" - %d : %d\n", i, key);
+    }
+}
+
 MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table)
 {
     if(strcmp(input_buffer->buffer, ".exit") == 0)
     {
         db_close(table);
         exit(EXIT_SUCCESS);
+    }
+    else if(strcmp(input_buffer->buffer, ".btree") == 0)
+    {
+        printf("Tree:\n");
+        print_leaf_node(get_page(table->pager, 0));
+        return META_COMMAND_SUCCESS;
     }
     else if(strcmp(input_buffer->buffer, ".constants") == 0)
     {
@@ -588,18 +606,6 @@ ExecuteResult execute_statement(Statement* statement, Table* table)
         return execute_insert(statement, table);
     case(STATEMENT_SELECT):
         return execute_select(statement, table);
-    }
-}
-
-void print_leaf_node(void * node)
-{
-    int num_cells = * leaf_node_num_cells(node);
-    printf("leaf (size %d)\n", num_cells);
-
-    for(int i = 0; i < num_cells; i++)
-    {
-        int key = * leaf_node_key(node, i);
-        printf(" - %d : %d\n", i, key);
     }
 }
 

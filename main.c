@@ -390,6 +390,20 @@ Cursor* leaf_node_find(Table* table, int page_num, int key)
     return cursor;
 }
 
+NodeType get_node_type(void* node)
+{
+    int value = *((int*)(node + NODE_TYPE_OFFSET));
+
+    return (NodeType)value;
+}
+
+void set_node_type(void* node, NodeType type)
+{
+    int value = type;
+
+    *((int*)(node + NODE_TYPE_OFFSET)) = value;
+}
+
 void cursor_advance(Cursor* cursor)
 {
     int page_num = cursor->page_num;

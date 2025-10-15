@@ -352,6 +352,26 @@ Cursor* table_start(Table* table)
     return cursor;
 }
 
+/**
+ * return the position of the given key
+ * if the key is not present, return the position where it should be inserted
+ */
+Cursor* table_find(Table* table, int key)
+{
+    int root_page_num = table->root_page_num;
+    void* root_node = get_page(table->pager, root_page_num);
+
+    if(get_node_type(root_node) == NODE_LEAF)
+    {
+        return leaf_node_find(table, root_page_num, key);
+    }
+    else
+    {
+        printf("Need to to implement serching an internal node\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 Cursor* leaf_node_find(Table* table, int page_num, int key)
 {
     void* node = get_page(table->pager, page_num);

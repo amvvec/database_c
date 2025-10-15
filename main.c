@@ -352,17 +352,40 @@ Cursor* table_start(Table* table)
     return cursor;
 }
 
-Cursor* table_end(Table* table)
+Cursor* leaf_node_find(Table* table, int page_num, int key)
 {
+    void* node = get_page(table->pager, page_num);
+    int num_cells = *leaf_node_num_cells(node);
+
     Cursor* cursor = malloc(sizeof(Cursor));
-
     cursor->table = table;
-    cursor->page_num = table->root_page_num;
+    cursor->page_num = page_num;
 
-    void* root_node = get_page(table->pager, table->root_page_num);
-    int num_cells = *leaf_node_num_cells(root_node);
-    cursor->cell_num = num_cells;
-    cursor->end_of_table = true;
+    // binary search
+    int min_index = 0;
+    int one_past_max_index = num_cells;
+    while(one_past_max_index != min_index)
+    {
+        int index = (min_index + one_past_max_index) / 2;
+        int ket_at_index = *leaf_node_key(node, index);
+
+        if(key == ket_at_index)
+        {
+            cursor->cell_num = index;
+            return cursor;
+        }
+
+        if(key < ket_at_index)
+        {
+            one_past_max_index = index;
+        }
+        else
+        {
+            min_index = index + 1;
+        }
+    }
+
+    cursor->cell_num = min_index;
 
     return cursor;
 }

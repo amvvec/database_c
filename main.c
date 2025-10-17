@@ -251,6 +251,20 @@ void* leaf_node_value(void* node, int cell_num)
     return leaf_node_cell(node, cell_num) + LEAF_NODE_KEY_SIZE;
 }
 
+void set_node_type(void* node, NodeType type)
+{
+    int value = type;
+
+    *((int*)(node + NODE_TYPE_OFFSET)) = value;
+}
+
+NodeType get_node_type(void* node)
+{
+    int value = *((int*)(node + NODE_TYPE_OFFSET));
+
+    return (NodeType)value;
+}
+
 void initialize_leaf_node(void* node)
 {
     set_node_type(node, NODE_LEAF);
@@ -339,41 +353,6 @@ typedef struct
     bool end_of_table;
 } Cursor;
 
-Cursor* table_start(Table* table)
-{
-    Cursor* cursor = malloc(sizeof(Cursor));
-
-    cursor->table = table;
-    cursor->page_num = table->root_page_num;
-    cursor->cell_num = 0;
-
-    void* root_node = get_page(table->pager, table->root_page_num);
-    int num_cells = *leaf_node_num_cells(root_node);
-    cursor->end_of_table = (num_cells == 0);
-
-    return cursor;
-}
-
-/**
- * return the position of the given key
- * if the key is not present, return the position where it should be inserted
- */
-Cursor* table_find(Table* table, int key)
-{
-    int root_page_num = table->root_page_num;
-    void* root_node = get_page(table->pager, root_page_num);
-
-    if(get_node_type(root_node) == NODE_LEAF)
-    {
-        return leaf_node_find(table, root_page_num, key);
-    }
-    else
-    {
-        printf("Need to to implement serching an internal node\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
 Cursor* leaf_node_find(Table* table, int page_num, int key)
 {
     void* node = get_page(table->pager, page_num);
@@ -412,18 +391,39 @@ Cursor* leaf_node_find(Table* table, int page_num, int key)
     return cursor;
 }
 
-NodeType get_node_type(void* node)
+Cursor* table_start(Table* table)
 {
-    int value = *((int*)(node + NODE_TYPE_OFFSET));
+    Cursor* cursor = malloc(sizeof(Cursor));
 
-    return (NodeType)value;
+    cursor->table = table;
+    cursor->page_num = table->root_page_num;
+    cursor->cell_num = 0;
+
+    void* root_node = get_page(table->pager, table->root_page_num);
+    int num_cells = *leaf_node_num_cells(root_node);
+    cursor->end_of_table = (num_cells == 0);
+
+    return cursor;
 }
 
-void set_node_type(void* node, NodeType type)
+/**
+ * return the position of the given key
+ * if the key is not present, return the position where it should be inserted
+ */
+Cursor* table_find(Table* table, int key)
 {
-    int value = type;
+    int root_page_num = table->root_page_num;
+    void* root_node = get_page(table->pager, root_page_num);
 
-    *((int*)(node + NODE_TYPE_OFFSET)) = value;
+    if(get_node_type(root_node) == NODE_LEAF)
+    {
+        return leaf_node_find(table, root_page_num, key);
+    }
+    else
+    {
+        printf("Need to to implement serching an internal node\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void cursor_advance(Cursor* cursor)
@@ -724,7 +724,7 @@ int main(int argc, char** argv)
         }
         switch(execute_statement(&statement, table))
         {
-        case(EXIT_SUCCESS):
+        case(EXECUTE_SUCCESS):
             printf("Executed\n");
             break;
         case(EXECUTE_TABLE_FULL):

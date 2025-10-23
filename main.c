@@ -623,6 +623,11 @@ void print_row(Row* row)
     printf("(%d, %s, %s)\n", row->id, row->username, row->email);
 }
 
+int get_unused_page_num(Pager * pager)
+{
+    return pager->num_pages;
+}
+
 ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     void* node = get_page(table->pager, table->root_page_num);

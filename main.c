@@ -628,6 +628,20 @@ int get_unused_page_num(Pager * pager)
     return pager->num_pages;
 }
 
+
+void leaf_node_split_and_insert(Cursor * cursor, int key, Row * row)
+{
+    /**
+     * create a new node and move half the cells over
+     * insert the new value in one of the two nodes
+     * update parent or create a new parent
+     */
+    void * old_node = get_page(cursor->table->pager, cursor->page_num);
+    int new_num_page = get_unused_page_num(cursor->table->pager);
+    void * new_node = get_page(cursor->table->pager, new_num_page);
+    initialize_leaf_node(new_node);
+}
+
 ExecuteResult execute_insert(Statement* statement, Table* table)
 {
     void* node = get_page(table->pager, table->root_page_num);

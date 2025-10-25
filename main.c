@@ -632,10 +632,16 @@ int get_unused_page_num(Pager* pager)
     return pager->num_pages;
 }
 
-bool is_node_root(void * node)
+bool is_node_root(void* node)
 {
-    int value = *((int * )(node + IS_ROOT_OFFSET));
+    int value = *((int*)(node + IS_ROOT_OFFSET));
     return (bool)value;
+}
+
+void set_node_root(void* node, bool is_root)
+{
+    int value = is_root;
+    *((int*)(node + IS_ROOT_OFFSET)) = value;
 }
 
 void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)

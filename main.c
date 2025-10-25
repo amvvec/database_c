@@ -677,6 +677,12 @@ void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)
                    LEAF_NODE_CELL_SIZE);
         }
     }
+
+    /**
+     * update cell count on both leaf nodes
+     */
+    *(leaf_node_num_cells(old_node)) = LEAF_NODE_LEFT_SPLIT_COUNT;
+    *(leaf_node_num_cells(new_node)) = LEAF_NODE_RIGHT_SPLIT_COUNT;
 }
 
 ExecuteResult execute_insert(Statement* statement, Table* table)

@@ -644,7 +644,7 @@ void set_node_root(void* node, bool is_root)
     *((int*)(node + IS_ROOT_OFFSET)) = value;
 }
 
-void create_new_node(Table * table, int right_child_page_num)
+void create_new_node(Table* table, int right_child_page_num)
 {
     /**
      * handle splitting the root
@@ -653,13 +653,13 @@ void create_new_node(Table * table, int right_child_page_num)
      * re-initialize root page to contain new root node
      * new root node points to two children
      */
-    
-    void * root = get_page(table->pager, table->root_page_num);
-    
+
+    void* root = get_page(table->pager, table->root_page_num);
+
     int left_child_page_num = get_unused_page_num(table->pager);
 
-    void * right_child = get_page(table->pager, right_child_page_num);
-    void * left_child = get_page(table->pager, left_child_page_num);
+    void* right_child = get_page(table->pager, right_child_page_num);
+    void* left_child = get_page(table->pager, left_child_page_num);
 }
 
 void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)
@@ -713,6 +713,16 @@ void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)
      */
     *(leaf_node_num_cells(old_node)) = LEAF_NODE_LEFT_SPLIT_COUNT;
     *(leaf_node_num_cells(new_node)) = LEAF_NODE_RIGHT_SPLIT_COUNT;
+
+    if(is_node_root(old_node))
+    {
+        return create_new_node(cursor->table, new_num_page);
+    }
+    else
+    {
+        printf("Need to implement updating parent after split\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 ExecuteResult execute_insert(Statement* statement, Table* table)

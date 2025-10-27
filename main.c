@@ -662,6 +662,23 @@ void create_new_node(Table* table, int right_child_page_num)
     void* left_child = get_page(table->pager, left_child_page_num);
 }
 
+void create_new_root(Table * table, int right_child_page_num)
+{
+    /**
+     * handle splitting the root.
+     * old root copied to new page, becomes left child.
+     * address of right child passed in.
+     * re-initialize root page to contain the new root node.
+     * new root node points to two children.
+     */
+    void* root = get_page(table->pager, table->root_page_num);
+
+    int left_child_page_num = get_unused_page_num(table->pager);
+
+    void * right_child = get_page(table->pager, right_child_page_num);
+    void * left_child = get_page(table->pager, left_child_page_num);
+}
+
 void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)
 {
     /**

@@ -677,6 +677,9 @@ void create_new_root(Table * table, int right_child_page_num)
 
     void * right_child = get_page(table->pager, right_child_page_num);
     void * left_child = get_page(table->pager, left_child_page_num);
+
+    memcpy(left_child, root, PAGE_SIZE);
+    set_node_root(left_child, false);
 }
 
 void leaf_node_split_and_insert(Cursor* cursor, int key, Row* value)

@@ -235,6 +235,15 @@ const int LEAF_NODE_RIGHT_SPLIT_COUNT = (LEAF_NODE_MAX_CELLS + 1) / 2;
 const int LEAF_NODE_LEFT_SPLIT_COUNT =
     (LEAF_NODE_MAX_CELLS + 1) - LEAF_NODE_RIGHT_SPLIT_COUNT;
 
+const int INTERNAL_NODE_NUM_KEYS_SIZE = sizeof(int);
+const int INTERNAL_NODE_NUM_KEYS_OFFSET = COMMON_NODE_HEADER_SIZE;
+const int INTERNAL_NODE_RIGHT_CHILD_SIZE = sizeof(int);
+const int INTERNAL_NODE_RIGHT_CHILD_OFFSET =
+    INTERNAL_NODE_NUM_KEYS_OFFSET + INTERNAL_NODE_NUM_KEYS_SIZE;
+const int INTERNAL_NODE_HEADER_SIZE = COMMON_NODE_HEADER_SIZE +
+                                      INTERNAL_NODE_NUM_KEYS_SIZE +
+                                      INTERNAL_NODE_RIGHT_CHILD_SIZE;
+
 void* leaf_node_cell(void* node, int cell_num)
 {
     return node + LEAF_NODE_HEADER_SIZE + cell_num + LEAF_NODE_CELL_SIZE;
@@ -662,7 +671,7 @@ void create_new_node(Table* table, int right_child_page_num)
     void* left_child = get_page(table->pager, left_child_page_num);
 }
 
-void create_new_root(Table * table, int right_child_page_num)
+void create_new_root(Table* table, int right_child_page_num)
 {
     /**
      * handle splitting the root.
@@ -675,8 +684,8 @@ void create_new_root(Table * table, int right_child_page_num)
 
     int left_child_page_num = get_unused_page_num(table->pager);
 
-    void * right_child = get_page(table->pager, right_child_page_num);
-    void * left_child = get_page(table->pager, left_child_page_num);
+    void* right_child = get_page(table->pager, right_child_page_num);
+    void* left_child = get_page(table->pager, left_child_page_num);
 
     memcpy(left_child, root, PAGE_SIZE);
     set_node_root(left_child, false);

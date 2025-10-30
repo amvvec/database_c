@@ -304,6 +304,16 @@ void print_constants()
     printf("LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
 }
 
+int * internal_node_num_keys(void * node)
+{
+    return node + INTERNAL_NODE_NUM_KEYS_OFFSET;
+}
+
+int * internal_node_right_child(void * node)
+{
+    return node + INTERNAL_NODE_RIGHT_CHILD_OFFSET;
+}
+
 typedef struct
 {
     int num_rows;

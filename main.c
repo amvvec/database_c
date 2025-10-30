@@ -235,6 +235,9 @@ const int LEAF_NODE_RIGHT_SPLIT_COUNT = (LEAF_NODE_MAX_CELLS + 1) / 2;
 const int LEAF_NODE_LEFT_SPLIT_COUNT =
     (LEAF_NODE_MAX_CELLS + 1) - LEAF_NODE_RIGHT_SPLIT_COUNT;
 
+/**
+ * internal Node Header Layout
+ */
 const int INTERNAL_NODE_NUM_KEYS_SIZE = sizeof(int);
 const int INTERNAL_NODE_NUM_KEYS_OFFSET = COMMON_NODE_HEADER_SIZE;
 const int INTERNAL_NODE_RIGHT_CHILD_SIZE = sizeof(int);
@@ -243,6 +246,13 @@ const int INTERNAL_NODE_RIGHT_CHILD_OFFSET =
 const int INTERNAL_NODE_HEADER_SIZE = COMMON_NODE_HEADER_SIZE +
                                       INTERNAL_NODE_NUM_KEYS_SIZE +
                                       INTERNAL_NODE_RIGHT_CHILD_SIZE;
+
+/**
+ * internal Node Body Layout
+ */
+const int INTERNAL_NODE_KEY_SIZE = sizeof(int);
+const int INTERNAL_NODE_CHILD_SIZE = sizeof(int);
+const int INTERNAL_NODE_CELL_SIZE = INTERNAL_NODE_CHILD_SIZE + INTERNAL_NODE_KEY_SIZE;
 
 void* leaf_node_cell(void* node, int cell_num)
 {

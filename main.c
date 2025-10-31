@@ -252,7 +252,8 @@ const int INTERNAL_NODE_HEADER_SIZE = COMMON_NODE_HEADER_SIZE +
  */
 const int INTERNAL_NODE_KEY_SIZE = sizeof(int);
 const int INTERNAL_NODE_CHILD_SIZE = sizeof(int);
-const int INTERNAL_NODE_CELL_SIZE = INTERNAL_NODE_CHILD_SIZE + INTERNAL_NODE_KEY_SIZE;
+const int INTERNAL_NODE_CELL_SIZE =
+    INTERNAL_NODE_CHILD_SIZE + INTERNAL_NODE_KEY_SIZE;
 
 void* leaf_node_cell(void* node, int cell_num)
 {
@@ -304,14 +305,20 @@ void print_constants()
     printf("LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
 }
 
-int * internal_node_num_keys(void * node)
+int* internal_node_num_keys(void* node)
 {
     return node + INTERNAL_NODE_NUM_KEYS_OFFSET;
 }
 
-int * internal_node_right_child(void * node)
+int* internal_node_right_child(void* node)
 {
     return node + INTERNAL_NODE_RIGHT_CHILD_OFFSET;
+}
+
+int internal_node_cell(void* node, int cell_num)
+{
+    return node + INTERNAL_NODE_HEADER_SIZE +
+           cell_num * INTERNAL_NODE_CELL_SIZE;
 }
 
 typedef struct

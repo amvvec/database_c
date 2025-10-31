@@ -321,6 +321,25 @@ int internal_node_cell(void* node, int cell_num)
            cell_num * INTERNAL_NODE_CELL_SIZE;
 }
 
+int internal_node_child(void* node, int child_num)
+{
+    int num_keys = *internal_node_num_keys(node);
+    if(child_num > num_keys)
+    {
+        printf("Tried to access child_num %d > num_keys %d\n", child_num,
+               num_keys);
+        exit(EXIT_FAILURE);
+    }
+    else if(child_num == num_keys)
+    {
+        return internal_node_right_child(node);
+    }
+    else
+    {
+        return internal_node_cell(node, child_num);
+    }
+}
+
 typedef struct
 {
     int num_rows;

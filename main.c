@@ -340,6 +340,11 @@ int internal_node_child(void* node, int child_num)
     }
 }
 
+int * internal_node_key(void * node, int key_num)
+{
+    return internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
+}
+
 typedef struct
 {
     int num_rows;

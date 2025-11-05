@@ -340,9 +340,20 @@ int internal_node_child(void* node, int child_num)
     }
 }
 
-int * internal_node_key(void * node, int key_num)
+int* internal_node_key(void* node, int key_num)
 {
     return internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
+}
+
+int get_node_max_key(void* node)
+{
+    switch(get_node_type(node))
+    {
+    case NODE_INTERNAL:
+        return *internal_node_key(node, *internal_node_num_keys(node) - 1);
+    case NODE_LEAF:
+        return *leaf_node_key(node, *leaf_node_num_cells(node) - 1);
+    }
 }
 
 typedef struct

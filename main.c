@@ -602,18 +602,6 @@ void close_input_buffer(InputBuffer* input_buffer)
     free(input_buffer);
 }
 
-void print_leaf_node(void* node)
-{
-    int num_cells = *leaf_node_num_cells(node);
-    printf("leaf (size %d)\n", num_cells);
-
-    for(int i = 0; i < num_cells; i++)
-    {
-        int key = *leaf_node_key(node, i);
-        printf(" - %d : %d\n", i, key);
-    }
-}
-
 MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table)
 {
     if(strcmp(input_buffer->buffer, ".exit") == 0)

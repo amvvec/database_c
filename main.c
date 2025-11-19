@@ -292,7 +292,15 @@ NodeType get_node_type(void* node)
 void initialize_leaf_node(void* node)
 {
     set_node_type(node, NODE_LEAF);
+    set_node_type(node, false);
     *leaf_node_num_cells(node) = 0;
+}
+
+void initialize_internal_node(void* node)
+{
+    set_node_type(node, NODE_INTERNAL);
+    set_node_root(node, false);
+    *internal_node_num_keys(node) = 0;
 }
 
 void print_constants()
